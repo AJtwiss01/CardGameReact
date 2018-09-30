@@ -9,7 +9,8 @@ class CardGameContainer extends Component {
     super(props);
     this.state = {
       deckID: "",
-      cards: []
+      cards: [],
+      lastCardFlipped: []
     };
   }
 
@@ -42,11 +43,16 @@ class CardGameContainer extends Component {
       });
   };
   isItMatching = (type, id) => {
-    console.log("clicked");
-    console.log(id);
-    console.log(type);
-    if (this.state.cards === id) {
+    console.log(this.state.lastCardFlipped)
+    if (this.state.cards[id].id == id && this.state.lastCardFlipped.length === 0) {
       console.log("found");
+      this.state.cards[id].flipped = true
+      this.setState({
+          lastCardFlipped:this.state.cards[id]
+      })
+      if(this.state.cards[id].id == id && this.state.lastCardFlipped.length === 0){
+        console.log('value not empty')
+      }
     }
   };
   render() {
