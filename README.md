@@ -1,2 +1,0 @@
-# CardGameReact
-Created with CodeSandbox
