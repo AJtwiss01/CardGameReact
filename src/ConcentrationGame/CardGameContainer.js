@@ -138,8 +138,9 @@ class CardGameContainer extends Component {
     const { cards, gameStarted,loadingGame } = this.state;
     return (
       <div style={containerStyle}>
-        <h1>Concentration Card Game</h1>
         <div> { loadingGame ?<h1>Loading Game ....</h1>: ""}</div>
+        <div style={divMarginSpacing}><button onClick={gameStarted ? this.handleNewGameClick: this.startGameClick} style={loadingGame ? {visibility: "hidden"}:{cursor: 'pointer'}}> {gameStarted ? 'New Game' : 'Start Game'  }</button>
+        </div >
         <div style={cardStyle}>
          { !loadingGame && (cards.map((singleCard, index) => {
             return (
@@ -154,7 +155,6 @@ class CardGameContainer extends Component {
               />
             );
           }))}
-          <button onClick={gameStarted ? this.handleNewGameClick: this.startGameClick} style={loadingGame ? {visibility: "hidden"}:{cursor: 'pointer'}}> {gameStarted ? 'New Game' : 'Start Game'  }</button>
         </div>
         
       </div>
@@ -166,12 +166,16 @@ const cardStyle = {
   flexWrap: "wrap",
   alignItems: "center",
   height: "50px",
-  width: "1140px",
-  margin: "0 auto"
 };
 const containerStyle ={
   display: "flex",
-  flexDirection: "column"
+  flexDirection: "column",
+  width: "1140px",
+  margin: "0 auto"
+}
+const divMarginSpacing = {
+  display: 'flex',
+  margin: '1em 0'
 }
 
 CardGameContainer.propTypes = {};
