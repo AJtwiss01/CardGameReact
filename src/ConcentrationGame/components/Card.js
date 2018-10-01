@@ -1,13 +1,21 @@
 import React from "react";
 
-const Card = ({ id, type, code, flipped, matched, image, flippingState }) => {
+const enhanceFunctionWithOnEnter = (cb) => (event) => {
+   if(event.key === "Enter"){
+     cb(event)
+   }
+}
+
+const Card = ({ id, type, code, flipped, matched, image, updateFlipCardStatus }) => {
   const handleFlippClick = event => {
     event.preventDefault();
-    flippingState(id);
+    updateFlipCardStatus(id);
   };
   return (
     <img
+      onKeyPress={enhanceFunctionWithOnEnter(handleFlippClick)}
       alt="Card to Flip"
+      tabIndex="0"
       src={flipped ? image : "../assets/playing-card-back.png"}
       id={id}
       key={code}

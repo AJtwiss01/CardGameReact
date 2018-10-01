@@ -3,20 +3,21 @@ import axios from "axios";
 
 import Card from "./components/Card";
 
+
 class CardGameContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
       deckID: "",
       cards: [],
-      firstCardFlipped: [],
-      SecondCardFlipped: [],
+      firstCardFlipped: null,
+      secondCardFlipped: null,
       gameStarted: false,
       loadingGame: false
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
     axios
       .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
       .then(res => {
@@ -49,13 +50,13 @@ class CardGameContainer extends Component {
         .get(`https://deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=52`)
         .then(res => {
           const allCards = res.data.cards.map((newCards, id) => {
-            return { id: id, ...newCards, flipped: false, matched: false };
+            return {...newCards, flipped: false, matched: false };
           });
           console.log(allCards);
           this.setState({
             cards: allCards,
             loadingGame: false
-          });
+          })
         });
     }, 1000);
   };
@@ -73,82 +74,74 @@ class CardGameContainer extends Component {
       gameStarted: true
     });
   };
-  isMatching = flippedCards => {
-    console.log("flippedCards", flippedCards);
+  //why did we pass a array 
+  updateMatchStatus = flippedCards => {
     const cardOneValue = flippedCards[0].value;
     const cardTwoValue = flippedCards[1].value;
-    const cardOneId = flippedCards[0].id;
-    const cardTwoId = flippedCards[1].id;
-    console.log(cardOneValue, cardTwoValue);
-    if (cardOneValue !== cardTwoValue) {
-      let newObject = Object.assign(this.state.cards);
-      console.log("my new ovbect", "+", newObject);
-      newObject[cardOneId].flipped = false;
-      newObject[cardTwoId].flipped = false;
-      this.setState({
-        cards: newObject,
-        firstCardFlipped: [],
-        SecondCardFlipped: []
-      });
-    }
+    const cardOneIndex = flippedCards[0].index;
+    const cardTwoIndex = flippedCards[1].index;
+    const newCardList =  this.state.cards.slice();
+    let firstCard = { ...newCardList[cardOneIndex], flipped: false  }
+    let secondCard = { ...newCardList[cardTwoIndex], flipped: false  }
+    
     if (cardOneValue === cardTwoValue) {
-      let newObject = Object.assign(this.state.cards);
-      console.log("my new object", "+", newObject);
-      newObject[cardOneId].matched = true;
-      newObject[cardTwoId].matched = true;
-      this.setState({
-        cards: this.state.cards,
-        firstCardFlipped: [],
-        SecondCardFlipped: []
-      });
+      firstCard = { ...firstCard, matched: true}
+      secondCard = { ...secondCard, matched: true}    
     }
+    newCardList[cardOneIndex] = firstCard
+    newCardList[cardTwoIndex] = secondCard
+    console.log("val ", cardOneValue, cardTwoValue, cardOneIndex, cardTwoIndex, newCardList, firstCard, secondCard)
+    this.setState({
+      cards: newCardList,
+      firstCardFlipped: null,
+      secondCardFlipped: null
+    });
+
   };
-  flippingState = id => {
-    //set state to a array to rembeber for first card to be selecte for object proprieties
+  updateFlipCardStatus = id => {
+    console.log('clicked ', id)
+    //update 
+    //set state to an array to remember for first card to be selected for object properties
     if (
-      this.state.cards[id].id === id &&
-      this.state.firstCardFlipped.length === 0
+      // if there first card hasn't been flipped 
+      this.state.firstCardFlipped === null
     ) {
-      console.log("found");
-      let newObject = Object.assign(this.state.cards);
-      console.log("my new object", "+", newObject);
-      newObject[id].flipped = true;
+      //create a object so we wont mutate the state 
+      //flipped not going ot update in card list 
+      const firstCard =  {...this.state.cards[id], flipped: true}
+      const newCardList =  this.state.cards.slice();
+      newCardList[id] = firstCard
+
       this.setState({
-        firstCardFlipped: this.state.cards[id]
+        cards: newCardList,
+        firstCardFlipped: {...firstCard, index:id}
       });
     }
-    //check to se if second cards is selected and do some checking
+
+    // if the is not the sanme as the first card clicked and there is a first card clicked and there is not second card clicked
+    // why if verse else if 
     if (
-      this.state.cards[id].id !== this.state.firstCardFlipped.id &&
-      this.state.firstCardFlipped.length !== 0 &&
-      this.state.SecondCardFlipped.length === 0
+      this.state.firstCardFlipped !== null &&
+      this.state.cards[id].code !== this.state.firstCardFlipped.code &&
+      this.state.secondCardFlipped === null
     ) {
-      if (this.state.cards[id].id === id) {
-        let newObject = Object.assign(this.state.cards);
-        console.log("my new object", "+", newObject);
-        newObject[id].flipped = true;
-        const newCardsToRender = this.state.cards.map(
-          cardsToUpdate => cardsToUpdate
-        );
+       console.log('hit')
+        const secondCard =  {...this.state.cards[id], flipped: true}
+        const newCardList =  this.state.cards.slice();
+        newCardList[id] = secondCard
+  
         this.setState({
-          cards: newCardsToRender,
-          SecondCardFlipped: this.state.cards[id]
+          cards: newCardList,
+          secondCardFlipped: {...secondCard, index:id}
         });
-      }
+       
       setTimeout(() => {
         if (
-          this.state.firstCardFlipped.length !== 0 &&
-          this.state.SecondCardFlipped.length !== 0
+          this.state.firstCardFlipped !== null &&
+          this.state.secondCardFlipped !== null
         ) {
-          this.isMatching([
-            {
-              value: this.state.firstCardFlipped.value,
-              id: this.state.firstCardFlipped.id
-            },
-            {
-              value: this.state.SecondCardFlipped.value,
-              id: this.state.SecondCardFlipped.id
-            }
+          this.updateMatchStatus([
+            this.state.firstCardFlipped, this.state.secondCardFlipped
           ]);
         }
       }, 1000);
@@ -158,7 +151,6 @@ class CardGameContainer extends Component {
     const { cards, gameStarted, loadingGame } = this.state;
     return (
       <div style={containerStyle}>
-        <h1>Concentration Card Game</h1>
         <div> {loadingGame ? <h1>Loading Game ....</h1> : ""}</div>
         <div style={divMarginSpacing}>
           <button
@@ -177,13 +169,13 @@ class CardGameContainer extends Component {
             cards.map((singleCard, index) => {
               return (
                 <Card
-                  id={singleCard.id}
+                  id={index}
                   type={singleCard.value}
                   key={index}
                   flipped={singleCard.flipped}
                   matched={singleCard.matched}
                   image={singleCard.image}
-                  flippingState={this.flippingState}
+                  updateFlipCardStatus={this.updateFlipCardStatus}
                 />
               );
             })}
@@ -192,6 +184,7 @@ class CardGameContainer extends Component {
     );
   }
 }
+
 const cardStyle = {
   display: "flex",
   flexWrap: "wrap",
@@ -208,7 +201,6 @@ const divMarginSpacing = {
   display: "flex",
   margin: "1em 0"
 };
-
 CardGameContainer.propTypes = {};
 
 export default CardGameContainer;
