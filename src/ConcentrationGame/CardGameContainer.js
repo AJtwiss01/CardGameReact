@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 import axios from "axios";
 
 import Card from "./components/Card";
@@ -12,6 +11,7 @@ class CardGameContainer extends Component {
       cards: [],
       firstCardFlipped: [],
       SecondCardFlipped: [],
+      gameStarted: false 
     };
   }
 
@@ -27,8 +27,7 @@ class CardGameContainer extends Component {
       });
   }
 
-  handleNewGameClick = event => {
-    event.preventDefault();
+  gameSetup = () => {
     axios
     .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
     .then(res => {
@@ -38,6 +37,7 @@ class CardGameContainer extends Component {
         deckID: cardDeck.deck_id
       });
     });
+
     const DECK_ID = this.state.deckID;
   
     axios
@@ -52,15 +52,17 @@ class CardGameContainer extends Component {
         });
       });
   };
-
-  resetState = () => {
-    this.setState({
-      cards: this.state.cards,
-      firstCardFlipped: [],
-      SecondCardFlipped: []
-    });
+  handleNewGameClick = event =>{
+   event.preventDefault()
+   this.gameSetup()
   }
-
+  startGameClick = event =>{
+    event.preventDefault()
+    this.gameSetup()
+    this.setState({
+      gameStarted: true
+    })
+   }
   isMatching = (flippedCards) => {
     console.log("flippedCards", flippedCards)
     const cardOneValue = flippedCards[0].value
@@ -69,17 +71,21 @@ class CardGameContainer extends Component {
     const cardTwoId= flippedCards[1].id
     console.log(cardOneValue, cardTwoValue)
     if (cardOneValue !== cardTwoValue) {
-      this.state.cards[cardOneId].flipped = false
-      this.state.cards[cardTwoId].flipped = false
+      let newObject = Object.assign(this.state.cards)
+      console.log('my new ovbect', '+' , newObject)
+      newObject[cardOneId].flipped = false
+      newObject[cardTwoId].flipped = false
       this.setState({
-        cards: this.state.cards,
+        cards: newObject,
         firstCardFlipped:[],
         SecondCardFlipped:[]
       })
     }
     if (cardOneValue === cardTwoValue) {
-      this.state.cards[cardOneId].matched = true
-      this.state.cards[cardTwoId].matched = true
+      let newObject = Object.assign(this.state.cards)
+      console.log('my new object', '+' , newObject)
+      newObject[cardOneId].matched = true
+      newObject[cardTwoId].matched = true
       this.setState({
         cards: this.state.cards,
         firstCardFlipped:[],
@@ -89,17 +95,21 @@ class CardGameContainer extends Component {
   }
   flippingState = (id) => {
     //set state to a array to rembeber for first card to be selecte for object proprieties
-    if (this.state.cards[id].id == id && this.state.firstCardFlipped.length === 0) {
+    if (this.state.cards[id].id === id && this.state.firstCardFlipped.length === 0) {
       console.log("found");
-      this.state.cards[id].flipped = true
+      let newObject = Object.assign(this.state.cards)
+      console.log('my new object', '+' , newObject)
+      newObject[id].flipped = true
       this.setState({
         firstCardFlipped: this.state.cards[id]
       })
     }
     //check to se if second cards is selected and do some checking 
-    if (this.state.cards[id].id != this.state.firstCardFlipped.id && this.state.firstCardFlipped.length != 0 && this.state.SecondCardFlipped.length === 0) {
-      if (this.state.cards[id].id == id) {
-        this.state.cards[id].flipped = true
+    if (this.state.cards[id].id !== this.state.firstCardFlipped.id && this.state.firstCardFlipped.length !== 0 && this.state.SecondCardFlipped.length === 0) {
+      if (this.state.cards[id].id === id) {
+        let newObject = Object.assign(this.state.cards)
+        console.log('my new object', '+' , newObject)
+        newObject[id].flipped = true
         const newCardsToRender = this.state.cards.map(cardsToUpdate => cardsToUpdate)
         this.setState({
           cards: newCardsToRender,
@@ -116,9 +126,10 @@ class CardGameContainer extends Component {
  
   };
   render() {
-    const { cards } = this.state;
+    const { cards, gameStarted } = this.state;
     return (
       <div style={containerStyle}>
+        <h1>Concentration Card Game</h1>
         <div style={cardStyle}>
           {cards.map((singleCard, index) => {
             return (
@@ -133,7 +144,7 @@ class CardGameContainer extends Component {
               />
             );
           })}
-          <button onClick={this.handleNewGameClick}> new game </button>
+          <button onClick={gameStarted ? this.handleNewGameClick: this.startGameClick}> {gameStarted ? 'New Game' : 'Start Game'  }</button>
         </div>
         
       </div>
