@@ -1,10 +1,9 @@
 import React from "react";
 
-const Card = ({ id, type, code, flipped, matched, image, isItMatching }) => {
+const Card = ({ id, type, code, flipped, matched, image, flippingState }) => {
   const handleFlippClick = event => {
     event.preventDefault();
-
-    isItMatching(type, id);
+    flippingState(id);
   };
   return (
     <img

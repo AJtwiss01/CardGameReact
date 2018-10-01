@@ -10,7 +10,8 @@ class CardGameContainer extends Component {
     this.state = {
       deckID: "",
       cards: [],
-      lastCardFlipped: []
+      firstCardFlipped: [],
+      SecondCardFlipped: [],
     };
   }
 
@@ -38,28 +39,68 @@ class CardGameContainer extends Component {
         });
         console.log(allCards);
         this.setState({
-          cards: allCards
+          cards: allCards,
         });
       });
   };
-  isItMatching = (type, id) => {
-    console.log(this.state.lastCardFlipped)
-    if (this.state.cards[id].id == id && this.state.lastCardFlipped.length === 0) {
+
+  resetState = () => {
+    this.setState({
+      cards: this.state.cards,
+      firstCardFlipped: [],
+      SecondCardFlipped: []
+    });
+  }
+
+  isMatching = (flippedCards) => {
+    console.log("flippedCards", flippedCards)
+    const cardOneValue = flippedCards[0].value
+    const cardTwoValue = flippedCards[1].value
+    const cardOneId = flippedCards[0].id
+    const cardTwoId= flippedCards[1].id
+    console.log(cardOneValue, cardTwoValue)
+    if (cardOneValue !== cardTwoValue) {
+      this.state.cards[cardOneId].flipped = false
+      this.state.cards[cardTwoId].flipped = false
+      this.setState({
+        cards: this.state.cards,
+        firstCardFlipped:[],
+        SecondCardFlipped:[]
+      })
+    }
+  }
+  flippingState = (id) => {
+    //set state to a array to rembeber for first card to be selecte for object proprieties
+    if (this.state.cards[id].id == id && this.state.firstCardFlipped.length === 0) {
       console.log("found");
       this.state.cards[id].flipped = true
       this.setState({
-          lastCardFlipped:this.state.cards[id]
+        firstCardFlipped: this.state.cards[id]
       })
-      if(this.state.cards[id].id == id && this.state.lastCardFlipped.length === 0){
-        console.log('value not empty')
-      }
     }
+    //check to se if second cards is selected and do some checking 
+    if (this.state.cards[id].id != this.state.firstCardFlipped.id && this.state.firstCardFlipped.length != 0 && this.state.SecondCardFlipped.length === 0) {
+      if (this.state.cards[id].id == id) {
+        this.state.cards[id].flipped = true
+        const newCardsToRender = this.state.cards.map(cardsToUpdate => cardsToUpdate)
+        this.setState({
+          cards: newCardsToRender,
+          SecondCardFlipped: this.state.cards[id]
+        })  
+      }
+      setTimeout(() => {
+        if( this.state.firstCardFlipped.length !== 0 && this.state.SecondCardFlipped.length !== 0){
+          this.isMatching([{value:this.state.firstCardFlipped.value, id:this.state.firstCardFlipped.id},{value: this.state.SecondCardFlipped.value, id:this.state.SecondCardFlipped.id }])
+
+        }
+      }, 1000);
+    }
+ 
   };
   render() {
     const { deckID, cards } = this.state;
-    console.log(cards[1]);
     return (
-      <div>
+      <div style={containerStyle}>
         <h1>{deckID}</h1>
         <div style={cardStyle}>
           {cards.map((singleCard, index) => {
@@ -71,12 +112,13 @@ class CardGameContainer extends Component {
                 flipped={singleCard.flipped}
                 matched={singleCard.matched}
                 image={singleCard.image}
-                isItMatching={this.isItMatching}
+                flippingState={this.flippingState}
               />
             );
           })}
+          <button onClick={this.handleNewGameClick}> new game </button>
         </div>
-        <button onClick={this.handleNewGameClick}> new game </button>
+        
       </div>
     );
   }
@@ -89,6 +131,11 @@ const cardStyle = {
   width: "1140px",
   margin: "0 auto"
 };
+const containerStyle ={
+  display: "flex",
+  flexDirection: "column"
+}
+
 CardGameContainer.propTypes = {};
 
 export default CardGameContainer;
