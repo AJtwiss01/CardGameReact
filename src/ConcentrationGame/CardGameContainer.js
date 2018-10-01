@@ -29,10 +29,19 @@ class CardGameContainer extends Component {
 
   handleNewGameClick = event => {
     event.preventDefault();
-    const DeckID = this.state.deckID;
-    console.log(this.state.deckID);
     axios
-      .get(`https://deckofcardsapi.com/api/deck/${DeckID}/draw/?count=52`)
+    .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
+    .then(res => {
+      const cardDeck = res.data;
+      console.log(cardDeck.deck_id);
+      this.setState({
+        deckID: cardDeck.deck_id
+      });
+    });
+    const DECK_ID = this.state.deckID;
+  
+    axios
+      .get(`https://deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=52`)
       .then(res => {
         const allCards = res.data.cards.map((newCards, id) => {
           return { id: id, ...newCards, flipped: false, matched: false };
@@ -62,6 +71,15 @@ class CardGameContainer extends Component {
     if (cardOneValue !== cardTwoValue) {
       this.state.cards[cardOneId].flipped = false
       this.state.cards[cardTwoId].flipped = false
+      this.setState({
+        cards: this.state.cards,
+        firstCardFlipped:[],
+        SecondCardFlipped:[]
+      })
+    }
+    if (cardOneValue === cardTwoValue) {
+      this.state.cards[cardOneId].matched = true
+      this.state.cards[cardTwoId].matched = true
       this.setState({
         cards: this.state.cards,
         firstCardFlipped:[],
@@ -98,10 +116,9 @@ class CardGameContainer extends Component {
  
   };
   render() {
-    const { deckID, cards } = this.state;
+    const { cards } = this.state;
     return (
       <div style={containerStyle}>
-        <h1>{deckID}</h1>
         <div style={cardStyle}>
           {cards.map((singleCard, index) => {
             return (

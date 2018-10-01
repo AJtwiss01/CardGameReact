@@ -13,6 +13,7 @@ const Card = ({ id, type, code, flipped, matched, image, flippingState }) => {
       key={code}
       type={type}
       onClick={handleFlippClick}
+      style={matched ? {visibility: "hidden"}:{cursor: 'pointer'}}
       width="86px"
     />
   );
