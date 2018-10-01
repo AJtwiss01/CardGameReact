@@ -129,7 +129,6 @@ class CardGameContainer extends Component {
       setTimeout(() => {
         if( this.state.firstCardFlipped.length !== 0 && this.state.SecondCardFlipped.length !== 0){
           this.isMatching([{value:this.state.firstCardFlipped.value, id:this.state.firstCardFlipped.id},{value: this.state.SecondCardFlipped.value, id:this.state.SecondCardFlipped.id }])
-
         }
       }, 1000);
     }
