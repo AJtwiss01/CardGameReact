@@ -11,7 +11,8 @@ class CardGameContainer extends Component {
       cards: [],
       firstCardFlipped: [],
       SecondCardFlipped: [],
-      gameStarted: false 
+      gameStarted: false,
+      loadingGame: false
     };
   }
 
@@ -28,33 +29,42 @@ class CardGameContainer extends Component {
   }
 
   gameSetup = () => {
-    axios
-    .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
-    .then(res => {
-      const cardDeck = res.data;
-      console.log(cardDeck.deck_id);
-      this.setState({
-        deckID: cardDeck.deck_id
-      });
-    });
-
-    const DECK_ID = this.state.deckID;
-  
-    axios
-      .get(`https://deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=52`)
+    this.setState({
+      loadingGame: true
+    })
+    setTimeout(() => {
+      axios
+      .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
       .then(res => {
-        const allCards = res.data.cards.map((newCards, id) => {
-          return { id: id, ...newCards, flipped: false, matched: false };
-        });
-        console.log(allCards);
+        const cardDeck = res.data;
+        console.log(cardDeck.deck_id);
         this.setState({
-          cards: allCards,
+          deckID: cardDeck.deck_id
         });
       });
+  
+      const DECK_ID = this.state.deckID;
+    
+      axios
+        .get(`https://deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=52`)
+        .then(res => {
+          const allCards = res.data.cards.map((newCards, id) => {
+            return { id: id, ...newCards, flipped: false, matched: false };
+          });
+          console.log(allCards);
+          this.setState({
+            cards: allCards,
+            loadingGame: false,
+          });
+        });
+    }, 1000);
   };
   handleNewGameClick = event =>{
    event.preventDefault()
    this.gameSetup()
+   this.setState({
+    gameStarted: true
+  })
   }
   startGameClick = event =>{
     event.preventDefault()
@@ -126,12 +136,13 @@ class CardGameContainer extends Component {
  
   };
   render() {
-    const { cards, gameStarted } = this.state;
+    const { cards, gameStarted,loadingGame } = this.state;
     return (
       <div style={containerStyle}>
         <h1>Concentration Card Game</h1>
+        <div> { loadingGame ?<h1>Loading Game ....</h1>: ""}</div>
         <div style={cardStyle}>
-          {cards.map((singleCard, index) => {
+         { !loadingGame && (cards.map((singleCard, index) => {
             return (
               <Card
                 id={singleCard.id}
@@ -143,8 +154,8 @@ class CardGameContainer extends Component {
                 flippingState={this.flippingState}
               />
             );
-          })}
-          <button onClick={gameStarted ? this.handleNewGameClick: this.startGameClick}> {gameStarted ? 'New Game' : 'Start Game'  }</button>
+          }))}
+          <button onClick={gameStarted ? this.handleNewGameClick: this.startGameClick} style={loadingGame ? {visibility: "hidden"}:{cursor: 'pointer'}}> {gameStarted ? 'New Game' : 'Start Game'  }</button>
         </div>
         
       </div>
