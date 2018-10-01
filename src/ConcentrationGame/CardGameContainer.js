@@ -158,7 +158,6 @@ class CardGameContainer extends Component {
     const { cards, gameStarted, loadingGame } = this.state;
     return (
       <div style={containerStyle}>
-        <h1>Concentration Card Game</h1>
         <div> {loadingGame ? <h1>Loading Game ....</h1> : ""}</div>
         <div style={divMarginSpacing}>
           <button
