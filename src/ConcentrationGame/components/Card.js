@@ -6,7 +6,7 @@ const enhanceFunctionWithOnEnter = (cb) => (event) => {
    }
 }
 
-const Card = ({ id, type, code, flipped, matched, image, updateFlipCardStatus }) => {
+const Card = ({ id, type, value, suit, code, flipped, matched, image, updateFlipCardStatus }) => {
   const handleFlippClick = event => {
     event.preventDefault();
     updateFlipCardStatus(id);
@@ -14,7 +14,7 @@ const Card = ({ id, type, code, flipped, matched, image, updateFlipCardStatus })
   return (
     <img
       onKeyPress={enhanceFunctionWithOnEnter(handleFlippClick)}
-      alt="Card to Flip"
+      alt={flipped ? `This card is the ${value} of ${suit}`:`Card to Flip`}
       tabIndex="0"
       src={flipped ? image : "../assets/playing-card-back.png"}
       id={id}

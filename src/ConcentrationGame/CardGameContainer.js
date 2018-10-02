@@ -1,79 +1,16 @@
 import React, { Component } from "react";
-import axios from "axios";
-
+import { css } from "emotion";
 import Card from "./components/Card";
 
 
 class CardGameContainer extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      deckID: "",
-      cards: [],
+
+    state = {
+      cards: this.props.cards,
       firstCardFlipped: null,
       secondCardFlipped: null,
-      gameStarted: false,
-      loadingGame: false
-    };
   }
 
-  componentDidMount() {
-    axios
-      .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
-      .then(res => {
-        const cardDeck = res.data;
-        console.log(cardDeck.deck_id);
-        this.setState({
-          deckID: cardDeck.deck_id
-        });
-      });
-  }
-
-  gameSetup = () => {
-    this.setState({
-      loadingGame: true
-    });
-    setTimeout(() => {
-      axios
-        .get(`https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`)
-        .then(res => {
-          const cardDeck = res.data;
-          console.log(cardDeck.deck_id);
-          this.setState({
-            deckID: cardDeck.deck_id
-          });
-        });
-
-      const DECK_ID = this.state.deckID;
-
-      axios
-        .get(`https://deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=52`)
-        .then(res => {
-          const allCards = res.data.cards.map((newCards, id) => {
-            return {...newCards, flipped: false, matched: false };
-          });
-          console.log(allCards);
-          this.setState({
-            cards: allCards,
-            loadingGame: false
-          })
-        });
-    }, 1000);
-  };
-  handleNewGameClick = event => {
-    event.preventDefault();
-    this.gameSetup();
-    this.setState({
-      gameStarted: true
-    });
-  };
-  startGameClick = event => {
-    event.preventDefault();
-    this.gameSetup();
-    this.setState({
-      gameStarted: true
-    });
-  };
   //why did we pass a array 
   updateMatchStatus = flippedCards => {
     const cardOneValue = flippedCards[0].value;
@@ -148,28 +85,28 @@ class CardGameContainer extends Component {
     }
   };
   render() {
-    const { cards, gameStarted, loadingGame } = this.state;
+    const { gameSetup } = this.props;
+    const { cards } = this.state;
+    console.log('card state', cards)
     return (
-      <div style={containerStyle}>
-        <div> {loadingGame ? <h1>Loading Game ....</h1> : ""}</div>
-        <div style={divMarginSpacing}>
+      <div className={classNames.containerStyle}>
+        <div className={classNames.divMarginSpacing}>
           <button
             onClick={
-              gameStarted ? this.handleNewGameClick : this.startGameClick
-            }
-            style={
-              loadingGame ? { visibility: "hidden" } : { cursor: "pointer" }
+              gameSetup
             }
           >
-            {gameStarted ? "New Game" : "Start Game"}
+            New Game
           </button>
         </div>
-        <div style={cardStyle}>
-          {!loadingGame &&
+        <div className={classNames.cardStyle}>
+          {
             cards.map((singleCard, index) => {
               return (
                 <Card
                   id={index}
+                  value={singleCard.value}
+                  suit={singleCard.suit}
                   type={singleCard.value}
                   key={index}
                   flipped={singleCard.flipped}
@@ -185,22 +122,26 @@ class CardGameContainer extends Component {
   }
 }
 
-const cardStyle = {
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  height: "50px"
-};
-const containerStyle = {
-  display: "flex",
-  flexDirection: "column",
-  width: "1140px",
-  margin: "0 auto"
-};
-const divMarginSpacing = {
-  display: "flex",
+const classNames = {
+  cardStyle: css`
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   height: 50px
+  `,
+  containerStyle: css`
+  display: flex;
+  flex-direction: column;
+  width: 1140px;
+  margin: 0 auto;
+  `,
+  divMarginSpacing: css`
+  display: "flex";
   margin: "1em 0"
-};
+  `
+}
+
+
 CardGameContainer.propTypes = {};
 
 export default CardGameContainer;
